@@ -388,7 +388,7 @@
                             <i class="fa-solid fa-eye text-sm" id="eyeIcon"></i>
                         </button>
                     </div>
-                    <p class="text-[11px] text-gray-400 mt-1">Default PIN: <span class="font-mono bg-gray-100 px-1 py-0.5 rounded text-gray-700">****</span></p>
+                    <p class="text-[11px] text-gray-400 mt-1">Default PIN: <span class="font-mono bg-gray-100 px-1 py-0.5 rounded text-gray-700">1234</span></p>
                 </div>
 
                 <div id="loginErrorMessage" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200">
@@ -520,6 +520,7 @@
                     </div>
                 </div>
 
+                <!-- Tab Pengumuman -->
                 <div id="tab-pengumuman" class="admin-tab-content space-y-4 hidden">
                     <h4 class="font-bold text-gray-900 text-xs sm:text-sm border-b pb-2 flex items-center">
                         <i class="fa-solid fa-bullhorn text-brand-600 mr-2"></i> Tambah Pengumuman / Kegiatan
@@ -531,6 +532,13 @@
                             <input type="text" id="adm-ann-date" placeholder="Waktu & Lokasi" class="px-3 py-2 border rounded-lg text-xs">
                         </div>
                         <textarea id="adm-ann-desc" placeholder="Isi detail pengumuman..." rows="2" class="w-full px-3 py-2 border rounded-lg text-xs"></textarea>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Link File / Gambar Google Drive (Public View)</label>
+                            <input type="text" id="adm-ann-file-url" placeholder="https://drive.google.com/file/d/... (Boleh Kosong)" class="w-full px-3 py-2 border rounded-lg text-xs">
+                            <p class="text-[10px] text-gray-400 mt-0.5">*Masukkan link Drive berkas lampiran atau gambar (pastikan akses: Siapa saja yang memiliki link)</p>
+                        </div>
+
                         <button onclick="addAnnouncementAdmin()" class="bg-brand-600 text-white font-bold px-4 py-2 rounded-lg text-xs hover:bg-brand-700 w-full sm:w-auto">
                             + Publikasikan Pengumuman
                         </button>
@@ -560,7 +568,7 @@
 
     <script>
         // URL Apps Script Web App
-        var GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyzr8YQIG0m9V4xzijRw8QZrSnTnJEqu9j7qKlfS66EMlLQb2ZC_iVua4c8ZrkKUvog/exec";
+        var GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxoDQQtTW1YIMAsNr9aZJx7jtUlqQB5mloSnBTMsz5ndwTf1XZhkS_A5JtRP-JhIxd0/exec";
 
         function formatNomorWA(noHp) {
             if (!noHp) return "6289671435599";
@@ -604,9 +612,9 @@
         ];
 
         var pengumumanList = JSON.parse(localStorage.getItem('rw10_announcements')) || [
-            { id: 1, judul: "Gotong Royong Kebersihan Saluran Air", kategori: "Kegiatan", ket: "Menghadapi musim hujan, warga dihimbau ikut serta dalam aksi kebersihan drainase.", jadwal: "Minggu, 08:00 WIB | Lapangan RW" },
-            { id: 2, judul: "Jadwal Posyandu Balita & Lansia", kategori: "Kesehatan", ket: "Pemeriksaan kesehatan rutin bulanan untuk balita dan lansia wilayah RW 10.", jadwal: "Kamis Depan | Balai Musyawarah" },
-            { id: 3, judul: "Ronda Malam & Keamanan Lingkungan", kategori: "Keamanan", ket: "Peningkatan jadwal ronda malam poskamling di masing-masing wilayah RT.", jadwal: "Setiap Malam | Pos Ronda RT" }
+            { id: 1, judul: "Gotong Royong Kebersihan Saluran Air", kategori: "Kegiatan", ket: "Menghadapi musim hujan, warga dihimbau ikut serta dalam aksi kebersihan drainase.", jadwal: "Minggu, 08:00 WIB | Lapangan RW", fileUrl: "" },
+            { id: 2, judul: "Jadwal Posyandu Balita & Lansia", kategori: "Kesehatan", ket: "Pemeriksaan kesehatan rutin bulanan untuk balita dan lansia wilayah RW 10.", jadwal: "Kamis Depan | Balai Musyawarah", fileUrl: "" },
+            { id: 3, judul: "Ronda Malam & Keamanan Lingkungan", kategori: "Keamanan", ket: "Peningkatan jadwal ronda malam poskamling di masing-masing wilayah RT.", jadwal: "Setiap Malam | Pos Ronda RT", fileUrl: "" }
         ];
 
         var aspirasiList = JSON.parse(localStorage.getItem('rw10_aspirasi')) || [
@@ -630,6 +638,10 @@
                     if (res.data.pengurus) {
                         pengurusData = res.data.pengurus;
                         localStorage.setItem('rw10_pengurus', JSON.stringify(pengurusData));
+                    }
+                    if (res.data.announcements) {
+                        pengumumanList = res.data.announcements;
+                        localStorage.setItem('rw10_announcements', JSON.stringify(pengumumanList));
                     }
                     renderAllView();
                 }
@@ -745,6 +757,14 @@
 
             if (container) {
                 container.innerHTML = pengumumanList.map(function(item) {
+                    var fileBtnHTML = "";
+                    if (item.fileUrl && item.fileUrl.trim() !== "") {
+                        fileBtnHTML = '<a href="' + item.fileUrl + '" target="_blank" class="mt-3 inline-flex items-center space-x-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg border border-brand-200 transition-colors">' +
+                            '<i class="fa-solid fa-file-arrow-down"></i>' +
+                            '<span>Buka Lampiran / Berkas</span>' +
+                        '</a>';
+                    }
+
                     return '<article class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-all">' +
                         '<div class="bg-gradient-to-r from-brand-600 to-emerald-500 h-24 sm:h-28 flex items-center justify-center text-white">' +
                             '<i class="fa-solid fa-bullhorn text-2xl sm:text-3xl"></i>' +
@@ -754,6 +774,7 @@
                                 '<span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-brand-50 text-brand-700 rounded-md border border-brand-100">' + item.kategori + '</span>' +
                                 '<h3 class="text-sm sm:text-base font-bold text-gray-900 mt-3 mb-2">' + item.judul + '</h3>' +
                                 '<p class="text-gray-600 text-xs leading-relaxed">' + item.ket + '</p>' +
+                                fileBtnHTML +
                             '</div>' +
                             '<div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">' +
                                 '<span><i class="fa-regular fa-clock text-brand-600 mr-1"></i> ' + item.jadwal + '</span>' +
@@ -768,7 +789,7 @@
                     return '<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border text-xs gap-2">' +
                         '<div class="overflow-hidden">' +
                             '<p class="font-bold text-gray-800 truncate">' + item.judul + ' <span class="text-brand-600">(' + item.kategori + ')</span></p>' +
-                            '<p class="text-gray-500 text-[11px] truncate">' + item.jadwal + '</p>' +
+                            '<p class="text-gray-500 text-[11px] truncate">' + item.jadwal + (item.fileUrl ? ' • [Ada Lampiran]' : '') + '</p>' +
                         '</div>' +
                         '<button onclick="deletePengumuman(' + item.id + ')" class="text-red-600 hover:text-red-800 px-2 py-1 font-bold shrink-0">Hapus</button>' +
                     '</div>';
@@ -1134,24 +1155,38 @@
             var kat = document.getElementById('adm-ann-cat').value || 'Umum';
             var date = document.getElementById('adm-ann-date').value || 'Segera';
             var desc = document.getElementById('adm-ann-desc').value;
+            var fileUrl = document.getElementById('adm-ann-file-url').value.trim();
 
             if(!judul || !desc) {
                 alert('Judul dan isi pengumuman wajib diisi.');
                 return;
             }
 
-            pengumumanList.unshift({ id: Date.now(), judul: judul, kategori: kat, ket: desc, jadwal: date });
+            pengumumanList.unshift({ 
+                id: Date.now(), 
+                judul: judul, 
+                kategori: kat, 
+                ket: desc, 
+                jadwal: date,
+                fileUrl: fileUrl
+            });
+
             localStorage.setItem('rw10_announcements', JSON.stringify(pengumumanList));
             renderPengumuman();
+            simpanSemuaKeSheets();
 
             document.getElementById('adm-ann-title').value = '';
             document.getElementById('adm-ann-desc').value = '';
+            document.getElementById('adm-ann-file-url').value = '';
         }
 
         function deletePengumuman(id) {
-            pengumumanList = pengumumanList.filter(function(item) { return item.id !== id; });
-            localStorage.setItem('rw10_announcements', JSON.stringify(pengumumanList));
-            renderPengumuman();
+            if(confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
+                pengumumanList = pengumumanList.filter(function(item) { return item.id !== id; });
+                localStorage.setItem('rw10_announcements', JSON.stringify(pengumumanList));
+                renderPengumuman();
+                simpanSemuaKeSheets();
+            }
         }
 
         function saveAspirasiReply(id) {
@@ -1191,7 +1226,12 @@
         }
 
         function simpanSemuaKeSheets() {
-            var payloadData = { settings: siteSettings, pengurus: pengurusData };
+            var payloadData = { 
+                settings: siteSettings, 
+                pengurus: pengurusData,
+                announcements: pengumumanList
+            };
+            
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run.simpanPengaturanKeSheet(payloadData);
             } else if (GAS_WEB_APP_URL) {
